@@ -1,4 +1,9 @@
-setwd("C:/Users/dell/Desktop/DA")
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
 dataset20 <- read.csv("dataset20.csv")
 library(ggplot2) 
 library(dplyr) 
@@ -8,13 +13,13 @@ library(skimr)
 glimpse(dataset20) 
 dataset20%>%
   skim()
-animal_counts <- table(animal_type)
+animal_counts <- table(dataset20$animal_type)
 pie(animal_counts, labels = names(animal_counts),main = "Pie Chart of Animal Type")
-intake_counts <- table(intake_type)
+intake_counts <- table(dataset20$intake_type)
 pie(intake_counts, labels = names(intake_counts), main = "Pie Chart of Intake Type")
-outcome_counts <- table(outcome_type)
+outcome_counts <- table(dataset20$outcome_type)
 pie(outcome_counts, labels = names(outcome_counts), main = "Pie Chart of Outcome Type")
-chip_status <- table(chip_status)
+chip_status <- table(dataset20$chip_status)
 pie(chip_status, labels = names(chip_status), main = "Pie Chart of Chip Status")
 dataset20num<-dataset20%>% 
   select(month,year,time_at_shelter) 
@@ -70,3 +75,4 @@ ggplot(data =dataset20, aes(x=chip_status, y=time_at_shelter, fill=chip_status))
   geom_boxplot() +
   labs(x = "Chip status", y = "Time at shelter")+ 
   theme(legend.position = "none")
+```
