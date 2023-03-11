@@ -60,6 +60,7 @@ dataset20 %>%
 comment here...
 
 ```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:animal} Different time at shelter of different animal type"}
+#Create 4 box plots of categorical variables and "time_at_shelter" with color mapped to categorical variables
 ggplot(data =dataset20, aes(x=animal_type, y=time_at_shelter, fill=animal_type)) +
   geom_boxplot() +
   labs(x = "Animal type", y = "Time at shelter")+ 
