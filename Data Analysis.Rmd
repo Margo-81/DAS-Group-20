@@ -1,0 +1,142 @@
+---
+title: "Data Analysis"
+author: "Group20"
+documentclass: article
+output:
+  pdf_document: 
+    number_sections: yes
+    fig_width: 15
+    fig_height: 15
+    fig_caption: yes
+    fig_crop: no
+  word_document: default
+geometry: left=2cm,right=2cm,top=2cm,bottom=2cm
+---
+
+------------------------------------------------------------------------
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA)
+```
+
+```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(dplyr) 
+library(moderndive) 
+library(gapminder) 
+library(skimr) 
+library(tidyverse)
+library(gridExtra)
+library(GGally)
+library(formatR)
+library(qcc)
+library(car)
+```
+# Introduction {#sec:intro}
+comment here...
+
+# Load Data {#sec:load}
+```{r loaddata, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+setwd("D://master//data analysis skills//Group Work2")
+dataset20 <- read.csv("dataset20.csv")
+head(dataset20)  #View data
+dataset20$animal_type<-as.factor(dataset20$animal_type)
+dataset20$intake_type<-as.factor(dataset20$intake_type)
+dataset20$outcome_type<-as.factor(dataset20$outcome_type)
+dataset20$chip_status<-as.factor(dataset20$chip_status)
+str(dataset20)  #View the structure of data
+```
+# Exploratory Data Analysis {#sec:exploratory}
+
+```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:histgram} days stay at shelter"}
+dataset20 %>%
+  ggplot(aes(x = time_at_shelter)) +
+  geom_histogram(binwidth = 5,fill="steelblue",color="white") +
+  labs(
+    title = "number of days (Poisson distribution)"+
+      theme_classic()
+  )
+```
+comment here...
+
+```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:animal} Different time at shelter of different animal type"}
+ggplot(data =dataset20, aes(x=animal_type, y=time_at_shelter, fill=animal_type)) +
+  geom_boxplot() +
+  labs(x = "Animal type", y = "Time at shelter")+ 
+  theme(legend.position = "none")
+```
+comment here.....
+
+```{r exploratory3, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:intake} Different time at shelter of different animal type"}
+ggplot(data =dataset20, aes(x=outcome_type, y=time_at_shelter, fill=outcome_type)) +
+  geom_boxplot() +
+  labs(x = "Outcome type", y = "Time at shelter")+ 
+  theme(legend.position = "none")
+```
+comment here...
+
+```{r exploratory4, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:chip} Different time at shelter of different chip status"}
+ggplot(data =dataset20, aes(x=chip_status, y=time_at_shelter, fill=chip_status)) +
+  geom_boxplot() +
+  labs(x = "Chip status", y = "Time at shelter")+ 
+  theme(legend.position = "none")
+```
+comment here...
+
+```{r exploratory5, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:month} Boxplots of time at shelter by month"}
+ggplot(data = dataset20, mapping = aes(x = factor(month), y = time_at_shelter)) +
+  geom_boxplot(fill = "steelblue") +
+  labs(x = "Month", y = "time_at_shelter",
+       title = "Boxplots of time at shelter by month")  +
+  scale_x_discrete(labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+```
+
+From the figure \ref{fig:month}, there is no significant difference of time at shelter by month.
+
+# Application Condition Judgement {#sec:check}
+## Check of outliers {#sec:outliers}
+```{r outliercheck, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:boxplot} Outlier detection"}
+# outliers detection
+boxplot(dataset20$time_at_shelter,
+        col=c('orange'),
+        ylab="days")
+```
+
+The figure \ref{fig:boxplot} indicates multiple outliers, by looking at the maximum values which is 87 which means that the days the animal spent at the shelter was 87. In this case, the 'outliers' we find are consistent with the actual conditions, thus these values can be retained.
+
+## Check of Overdispersion {#sec:overdispersion}
+```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=poisson()) #build poisson glm model
+summary(fit1) #view the coefficients
+c<-deviance(fit1)/df.residual(fit1) #calculate the deviance over the degree of residual
+c 
+```
+
+The proportion is much greater than 1, then use the qcc library to test whether the data is overdispersion. 
+
+```{r overdispersion_check2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+qcc.overdispersion.test(dataset20$time_at_shelter,type="poisson")
+```
+
+The p-value of significance testing is less than 0.05, further indicating overdispersion in data.
+
+In this case, replacing family="poisson" by family="quasipoisson" to solve this problem.
+
+## Check of Multicollinearity {#sec:Multicollinearity}
+```{r multicollinearty_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+fit2<- lm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20) #build the linear model
+vif(fit2) #calculate VIF
+```
+
+From the above table, it lists the VIF of the independent variables. It indicates that the VIF of the variables are all less than 10 which means that the independent variables doesn't exist serious multicollinearity.
+
+# Model fitting {#sec:fitting}
+```{r modelfitting, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=quasipoisson()) #build quasipoisson glm model
+summary(fit3) #view the coefficients
+exp(coef(fit3))  
+```
+comment here...
+
+
