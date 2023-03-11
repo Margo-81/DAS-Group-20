@@ -108,7 +108,7 @@ The figure \ref{fig:boxplot} indicates multiple outliers, by looking at the maxi
 
 ## Check of Overdispersion {#sec:overdispersion}
 ```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=poisson()) #build poisson glm model
+fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=poisson(link = "log")) #build poisson glm model
 summary(fit1) #view the coefficients
 c<-deviance(fit1)/df.residual(fit1) #calculate the deviance over the degree of residual
 c 
@@ -134,10 +134,22 @@ From the above table, it lists the VIF of the independent variables. It indicate
 
 # Model fitting {#sec:fitting}
 ```{r modelfitting, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=quasipoisson()) #build quasipoisson glm model
+fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=quasipoisson(link = "log")) #build quasipoisson glm model
 summary(fit3) #view the coefficients
-exp(coef(fit3))  
+exp(coef(fit3))
+
 ```
 comment here...
 
-
+```{r residual_vs_predicted, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:compare} Residual Plots vs. Predicted"}
+pred<-predict(fit1,type="response")
+stand.resid<-rstandard(model=fit1,type="pearson")
+par(mfrow=c(1,2),pin=c(6,6))
+plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",main="Regular likelihood",ylim=c(-2,4))
+abline(h=c(-1.5,0,4),lty="dotted",col="red")
+pred<-predict(fit3,type="response")
+stand.resid<-rstandard(model=fit3,type="pearson")
+plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",main="Quasi-likelihood",ylim=c(-2,4))
+abline(h=c(-1.5,0,4),lty="dotted",col="red")
+```
+We can see in the plots that most residuals are contained within (-1.5,4) in the quasi-Poisson model, while quite more are outside this range for the original Poisson model.
