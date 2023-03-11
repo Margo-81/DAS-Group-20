@@ -10,9 +10,12 @@ library(dplyr)
 library(moderndive) 
 library(gapminder) 
 library(skimr) 
+#Examine the structure of the data frame using the "glimpse()" function 
 glimpse(dataset20) 
+#Generate a summary of the data frame using the "skim()" function
 dataset20%>%
-  skim()
+  skim()  
+#Create frequency tables of 4 categorical variables and plot pie charts
 animal_counts <- table(dataset20$animal_type)
 pie(animal_counts, labels = names(animal_counts),main = "Pie Chart of Animal Type")
 intake_counts <- table(dataset20$intake_type)
@@ -21,12 +24,15 @@ outcome_counts <- table(dataset20$outcome_type)
 pie(outcome_counts, labels = names(outcome_counts), main = "Pie Chart of Outcome Type")
 chip_status <- table(dataset20$chip_status)
 pie(chip_status, labels = names(chip_status), main = "Pie Chart of Chip Status")
+#Select only the numerical variables from the dataset and calculate the correlation matrix
 dataset20num<-dataset20%>% 
   select(month,year,time_at_shelter) 
 dataset20num%>% 
   cor() 
+#Encode the categorical variables in the dataset using "model.matrix()" function and calculate the correlation between the encoded variables and "time_at_shelter"
 encoded_20<-model.matrix(~month+year+time_at_shelter+animal_type+intake_type+outcome_type+chip_status,data=dataset20)
-cor(encoded_20[, -1], dataset20$time_at_shelter)
+cor(encoded_20[, -1], dataset20$time_at_shelter)  
+#Create 4 scatter plots of "year" and "time_at_shelter" with color mapped to categorical variables
 ggplot(dataset20, aes(x = year, y = time_at_shelter, color = intake_type)) + 
   geom_jitter() + 
   labs(x = "Year", y = "Time at shelter", color = "Intake type",title = "Relationship between year and Time at shelter in defferent intake type") + 
@@ -43,6 +49,7 @@ ggplot(dataset20, aes(x = year, y = time_at_shelter, color = chip_status)) +
   geom_jitter() + 
   labs(x = "Year", y = "Time at shelter", color = "Chip status",title = "Relationship between year and Time at shelter in defferent chip status") + 
   geom_smooth(method = "lm", se = FALSE)
+#Create 4 scatter plots of "month" and "time_at_shelter" with color mapped to categorical variables
 ggplot(dataset20, aes(x = month, y = time_at_shelter, color = intake_type)) + 
   geom_jitter() + 
   labs(x = "Month", y = "Time at shelter", color = "Intake type",title = "Relationship between month and Time at shelter in defferent intake type") + 
@@ -59,6 +66,7 @@ ggplot(dataset20, aes(x = month, y = time_at_shelter, color = chip_status)) +
   geom_jitter() + 
   labs(x = "Month", y = "Time at shelter", color = "Chip status",title = "Relationship between month and Time at shelter in defferent chip status") + 
   geom_smooth(method = "lm", se = FALSE)
+#Create 4 box plots of categorical variables and "time_at_shelter" with color mapped to categorical variables
 ggplot(data =dataset20, aes(x=animal_type, y=time_at_shelter, fill=animal_type)) +
   geom_boxplot() +
   labs(x = "Animal type", y = "Time at shelter")+ 
