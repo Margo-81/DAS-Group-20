@@ -39,18 +39,19 @@ comment here...
 
 # Load Data {#sec:load}
 ```{r loaddata, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-setwd("C:/Users/dell/Desktop/DA/DAS-Group-20")
+setwd("D://master//data analysis skills//Group Work2")
 dataset20 <- read.csv("dataset20.csv")
 head(dataset20)  #View data
 dataset20$animal_type<-as.factor(dataset20$animal_type)
 dataset20$intake_type<-as.factor(dataset20$intake_type)
 dataset20$outcome_type<-as.factor(dataset20$outcome_type)
 dataset20$chip_status<-as.factor(dataset20$chip_status)
+dataset20$month<-as.factor(dataset20$month)
 str(dataset20)  #View the structure of data
 ```
 # Exploratory Data Analysis {#sec:exploratory}
 
-```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:histgram} days stay at shelter"}
+```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:histgram} Days stay at shelter"}
 dataset20 %>%
   ggplot(aes(x = time_at_shelter)) +
   geom_histogram(binwidth = 5,fill="steelblue",color="white") +
@@ -91,12 +92,12 @@ ggplot(data = dataset20, mapping = aes(x = factor(month), y = time_at_shelter)) 
                               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 ```
 
-From the figure \ref{fig:month}, there is no significant difference of time at shelter by month.
+From the figure \ref{fig:month}, comment here...
 
 # Application Condition Judgement {#sec:check}
 ## Check of outliers {#sec:outliers}
 ```{r outliercheck, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:boxplot} Outlier detection"}
-# outliers detection
+# detection of outliers
 boxplot(dataset20$time_at_shelter,
         col=c('orange'),
         ylab="Days",xlab="Time at shelter")
@@ -106,12 +107,14 @@ The figure \ref{fig:boxplot} indicates multiple outliers, by looking at the maxi
 
 ## Check of Overdispersion {#sec:overdispersion}
 ```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status,
+fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status+month,
           data=dataset20,family=poisson(link = "log")) #build poisson glm model
 summary(fit1) #view the coefficients
 c<-deviance(fit1)/df.residual(fit1) #calculate the deviance over the degree of residual
 c 
 ```
+
+comment here(about the summary)...
 
 The proportion is much greater than 1, then use the qcc library to test whether the data is overdispersion. 
 
@@ -125,7 +128,7 @@ In this case, replacing family="poisson" by family="quasipoisson" to solve this 
 
 ## Check of Multicollinearity {#sec:Multicollinearity}
 ```{r multicollinearty_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit2<- lm(time_at_shelter~intake_type+outcome_type+chip_status,
+fit2<- lm(time_at_shelter~intake_type+outcome_type+chip_status+month,
           data=dataset20) #build the linear model
 vif(fit2) #calculate VIF
 ```
@@ -134,7 +137,7 @@ From the above table, it lists the VIF of the independent variables. It indicate
 
 # Model fitting {#sec:fitting}
 ```{r modelfitting, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,
+fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status+month,data=dataset20,
           family=quasipoisson(link = "log")) #build quasipoisson glm model
 summary(fit3) #view the coefficients
 exp(coef(fit3))
