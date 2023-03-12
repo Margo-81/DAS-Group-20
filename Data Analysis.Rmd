@@ -11,6 +11,8 @@ output:
     fig_crop: no
   word_document: default
 geometry: left=2cm,right=2cm,top=2cm,bottom=2cm
+header-includes:
+  - \usepackage{float}
 ---
 
 ------------------------------------------------------------------------
@@ -37,7 +39,7 @@ comment here...
 
 # Load Data {#sec:load}
 ```{r loaddata, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-setwd("D://master//data analysis skills//Group Work2")
+setwd("C:/Users/dell/Desktop/DA/DAS-Group-20")
 dataset20 <- read.csv("dataset20.csv")
 head(dataset20)  #View data
 dataset20$animal_type<-as.factor(dataset20$animal_type)
@@ -48,43 +50,39 @@ str(dataset20)  #View the structure of data
 ```
 # Exploratory Data Analysis {#sec:exploratory}
 
-```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:histgram} days stay at shelter"}
+```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:histgram} days stay at shelter"}
 dataset20 %>%
   ggplot(aes(x = time_at_shelter)) +
   geom_histogram(binwidth = 5,fill="steelblue",color="white") +
-  labs(
-    title = "number of days (Poisson distribution)"+
-      theme_classic()
-  )
+  labs(x = "Time at shelter", y = "Number of days")
 ```
 comment here...
 
-```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:animal} Different time at shelter of different animal type"}
-#Create 4 box plots of categorical variables and "time_at_shelter" with color mapped to categorical variables
-ggplot(data =dataset20, aes(x=animal_type, y=time_at_shelter, fill=animal_type)) +
+```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
+#Create 4 box plots of categorical variables and "time_at_shelter" 
+#with color mapped to categorical variables
+plot1<-ggplot(data =dataset20, aes(x=animal_type, y=time_at_shelter, fill=animal_type)) +
   geom_boxplot() +
   labs(x = "Animal type", y = "Time at shelter")+ 
   theme(legend.position = "none")
-```
-comment here.....
-
-```{r exploratory3, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:intake} Different time at shelter of different animal type"}
-ggplot(data =dataset20, aes(x=outcome_type, y=time_at_shelter, fill=outcome_type)) +
+plot2<-ggplot(data =dataset20, aes(x=outcome_type, y=time_at_shelter, fill=outcome_type)) +
   geom_boxplot() +
   labs(x = "Outcome type", y = "Time at shelter")+ 
   theme(legend.position = "none")
-```
-comment here...
-
-```{r exploratory4, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:chip} Different time at shelter of different chip status"}
-ggplot(data =dataset20, aes(x=chip_status, y=time_at_shelter, fill=chip_status)) +
+plot3<-ggplot(data =dataset20, aes(x=chip_status, y=time_at_shelter, fill=chip_status)) +
   geom_boxplot() +
   labs(x = "Chip status", y = "Time at shelter")+ 
   theme(legend.position = "none")
+plot4<-ggplot(data =dataset20, aes(x=intake_type, y=time_at_shelter, fill=intake_type)) +
+  geom_boxplot() +
+  labs(x = "Intake type", y = "Time at shelter")+ 
+  theme(legend.position = "none")
+library(gridExtra)
+grid.arrange(plot1,plot2,plot3,plot4,ncol=2,nrow=2)
 ```
 comment here...
 
-```{r exploratory5, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:month} Boxplots of time at shelter by month"}
+```{r exploratory5, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:month} Boxplots of time at shelter by month"}
 ggplot(data = dataset20, mapping = aes(x = factor(month), y = time_at_shelter)) +
   geom_boxplot(fill = "steelblue") +
   labs(x = "Month", y = "time_at_shelter",
@@ -97,18 +95,19 @@ From the figure \ref{fig:month}, there is no significant difference of time at s
 
 # Application Condition Judgement {#sec:check}
 ## Check of outliers {#sec:outliers}
-```{r outliercheck, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:boxplot} Outlier detection"}
+```{r outliercheck, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:boxplot} Outlier detection"}
 # outliers detection
 boxplot(dataset20$time_at_shelter,
         col=c('orange'),
-        ylab="days")
+        ylab="Days",xlab="Time at shelter")
 ```
 
 The figure \ref{fig:boxplot} indicates multiple outliers, by looking at the maximum values which is 87 which means that the days the animal spent at the shelter was 87. In this case, the 'outliers' we find are consistent with the actual conditions, thus these values can be retained.
 
 ## Check of Overdispersion {#sec:overdispersion}
 ```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=poisson(link = "log")) #build poisson glm model
+fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status,
+          data=dataset20,family=poisson(link = "log")) #build poisson glm model
 summary(fit1) #view the coefficients
 c<-deviance(fit1)/df.residual(fit1) #calculate the deviance over the degree of residual
 c 
@@ -126,7 +125,8 @@ In this case, replacing family="poisson" by family="quasipoisson" to solve this 
 
 ## Check of Multicollinearity {#sec:Multicollinearity}
 ```{r multicollinearty_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit2<- lm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20) #build the linear model
+fit2<- lm(time_at_shelter~intake_type+outcome_type+chip_status,
+          data=dataset20) #build the linear model
 vif(fit2) #calculate VIF
 ```
 
@@ -134,22 +134,25 @@ From the above table, it lists the VIF of the independent variables. It indicate
 
 # Model fitting {#sec:fitting}
 ```{r modelfitting, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,family=quasipoisson(link = "log")) #build quasipoisson glm model
+fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status,data=dataset20,
+          family=quasipoisson(link = "log")) #build quasipoisson glm model
 summary(fit3) #view the coefficients
 exp(coef(fit3))
 
 ```
 comment here...
 
-```{r residual_vs_predicted, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "h",fig.cap = "\\label{fig:compare} Residual Plots vs. Predicted"}
+```{r residual_vs_predicted, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:compare} Residual Plots vs. Predicted"}
 pred<-predict(fit1,type="response")
 stand.resid<-rstandard(model=fit1,type="pearson")
 par(mfrow=c(1,2),pin=c(6,6))
-plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",main="Regular likelihood",ylim=c(-2,4))
+plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",
+     main="Regular likelihood",ylim=c(-2,4))
 abline(h=c(-1.5,0,4),lty="dotted",col="red")
 pred<-predict(fit3,type="response")
 stand.resid<-rstandard(model=fit3,type="pearson")
-plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",main="Quasi-likelihood",ylim=c(-2,4))
+plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",
+     main="Quasi-likelihood",ylim=c(-2,4))
 abline(h=c(-1.5,0,4),lty="dotted",col="red")
 ```
 We can see in the plots that most residuals are contained within (-1.5,4) in the quasi-Poisson model, while quite more are outside this range for the original Poisson model.
