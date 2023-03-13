@@ -63,15 +63,19 @@ comment here...
 #Plot pie charts of 4 categorical variables
 pie1<-ggplot(dataset20, aes(x = "animal_counts", fill =animal_type)) + 
   geom_bar(width = 1) + coord_polar(theta = "y") + 
+  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
   theme_void() + ggtitle("Pie chart of animal type")
 pie2<-ggplot(dataset20, aes(x = "outcome_type", fill =outcome_type)) + 
   geom_bar(width = 1) + coord_polar(theta = "y") + 
+  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
   theme_void() + ggtitle("Pie chart of outcome type")
 pie3<-ggplot(dataset20, aes(x = "chip_status", fill =chip_status)) + 
   geom_bar(width = 1) + coord_polar(theta = "y") + 
+  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
   theme_void() + ggtitle("Pie chart of chip status")
 pie4<-ggplot(dataset20, aes(x = "intake_type", fill =intake_type)) + 
   geom_bar(width = 1) + coord_polar(theta = "y") + 
+  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
   theme_void() + ggtitle("Pie chart of intake type")
 library(gridExtra)
 grid.arrange(pie1,pie2,pie3,pie4,ncol=2,nrow=2)
