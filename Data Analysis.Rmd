@@ -41,25 +41,41 @@ comment here...
 ```{r loaddata, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 setwd("D://master//data analysis skills//Group Work2")
 dataset20 <- read.csv("dataset20.csv")
-head(dataset20)  #View data
+skim20<-skimr::skim(dataset20)#View data
+library(knitr)
+kable(skim20, format = "latex")
 dataset20$animal_type<-as.factor(dataset20$animal_type)
 dataset20$intake_type<-as.factor(dataset20$intake_type)
 dataset20$outcome_type<-as.factor(dataset20$outcome_type)
 dataset20$chip_status<-as.factor(dataset20$chip_status)
 dataset20$month<-as.factor(dataset20$month)
-str(dataset20)  #View the structure of data
+glimpse20<-glimpse(dataset20)#View the structure of data
+kable(glimpse20, format = "latex")
 ```
 # Exploratory Data Analysis {#sec:exploratory}
 
 ```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:histgram} Days stay at shelter"}
 dataset20 %>%
   ggplot(aes(x = time_at_shelter)) +
-  geom_histogram(binwidth = 5,fill="steelblue",color="white") +
+  geom_histogram(binwidth = 5,fill="pink",color="white") +
   labs(x = "Time at shelter", y = "Number of days")
 ```
 comment here...
-
 ```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
+#Create frequency tables of 4 categorical variables and plot pie charts
+animal_counts <- table(dataset20$animal_type)
+pie1<-pie(animal_counts, labels = names(animal_counts),main = "Pie Chart of Animal Type")
+intake_counts <- table(dataset20$intake_type)
+pie2<-pie(intake_counts, labels = names(intake_counts), main = "Pie Chart of Intake Type")
+outcome_counts <- table(dataset20$outcome_type)
+pie3<-pie(outcome_counts, labels = names(outcome_counts), main = "Pie Chart of Outcome Type")
+chip_status <- table(dataset20$chip_status)
+pie4<-pie(chip_status, labels = names(chip_status), main = "Pie Chart of Chip Status")
+library(gridExtra)
+grid.arrange(pie1,pie2,pie3,pie4,ncol=2,nrow=2)
+```
+comment here...
+```{r exploratory3, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
 #Create 4 box plots of categorical variables and "time_at_shelter" 
 #with color mapped to categorical variables
 plot1<-ggplot(data =dataset20, aes(x=animal_type, y=time_at_shelter, fill=animal_type)) +
