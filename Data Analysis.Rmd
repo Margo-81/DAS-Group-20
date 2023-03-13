@@ -41,16 +41,14 @@ comment here...
 ```{r loaddata, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 setwd("D://master//data analysis skills//Group Work2")
 dataset20 <- read.csv("dataset20.csv")
-skim20<-skimr::skim(dataset20)#View data
 library(knitr)
-kable(skim20, format = "latex")
 dataset20$animal_type<-as.factor(dataset20$animal_type)
 dataset20$intake_type<-as.factor(dataset20$intake_type)
 dataset20$outcome_type<-as.factor(dataset20$outcome_type)
 dataset20$chip_status<-as.factor(dataset20$chip_status)
 dataset20$month<-as.factor(dataset20$month)
-glimpse20<-glimpse(dataset20)#View the structure of data
-kable(glimpse20, format = "latex")
+head20<-head(dataset20)#View the structure of data
+kable(head20,format="latex")
 ```
 # Exploratory Data Analysis {#sec:exploratory}
 
@@ -62,15 +60,19 @@ dataset20 %>%
 ```
 comment here...
 ```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
-#Create frequency tables of 4 categorical variables and plot pie charts
-animal_counts <- table(dataset20$animal_type)
-pie1<-pie(animal_counts, labels = names(animal_counts),main = "Pie Chart of Animal Type")
-intake_counts <- table(dataset20$intake_type)
-pie2<-pie(intake_counts, labels = names(intake_counts), main = "Pie Chart of Intake Type")
-outcome_counts <- table(dataset20$outcome_type)
-pie3<-pie(outcome_counts, labels = names(outcome_counts), main = "Pie Chart of Outcome Type")
-chip_status <- table(dataset20$chip_status)
-pie4<-pie(chip_status, labels = names(chip_status), main = "Pie Chart of Chip Status")
+#Plot pie charts of 4 categorical variables
+pie1<-ggplot(dataset20, aes(x = "animal_counts", fill =animal_type)) + 
+  geom_bar(width = 1) + coord_polar(theta = "y") + 
+  theme_void() + ggtitle("Pie chart of animal type")
+pie2<-ggplot(dataset20, aes(x = "outcome_type", fill =outcome_type)) + 
+  geom_bar(width = 1) + coord_polar(theta = "y") + 
+  theme_void() + ggtitle("Pie chart of outcome type")
+pie3<-ggplot(dataset20, aes(x = "chip_status", fill =chip_status)) + 
+  geom_bar(width = 1) + coord_polar(theta = "y") + 
+  theme_void() + ggtitle("Pie chart of chip status")
+pie4<-ggplot(dataset20, aes(x = "intake_type", fill =intake_type)) + 
+  geom_bar(width = 1) + coord_polar(theta = "y") + 
+  theme_void() + ggtitle("Pie chart of intake type")
 library(gridExtra)
 grid.arrange(pie1,pie2,pie3,pie4,ncol=2,nrow=2)
 ```
@@ -101,7 +103,7 @@ comment here...
 
 ```{r exploratory5, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:month} Boxplots of time at shelter by month"}
 ggplot(data = dataset20, mapping = aes(x = factor(month), y = time_at_shelter)) +
-  geom_boxplot(fill = "steelblue") +
+  geom_boxplot(fill = "purple") +
   labs(x = "Month", y = "time_at_shelter",
        title = "Boxplots of time at shelter by month")  +
   scale_x_discrete(labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
