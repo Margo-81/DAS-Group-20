@@ -48,14 +48,17 @@ dataset20$outcome_type<-as.factor(dataset20$outcome_type)
 dataset20$chip_status<-as.factor(dataset20$chip_status)
 dataset20$month<-as.factor(dataset20$month)
 head20<-head(dataset20)#View the structure of data
-kable(head20,format="latex")
+library(kableExtra)
+kable(head20,format="latex")%>%
+  add_header_above(c(" "=1,"The structure of data"=2," "=1))%>%
+  kable_styling(full_width = F)
 ```
 # Exploratory Data Analysis {#sec:exploratory}
 
 ```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:histgram} Days stay at shelter"}
 dataset20 %>%
   ggplot(aes(x = time_at_shelter)) +
-  geom_histogram(binwidth = 5,fill="pink",color="white") +
+  geom_histogram(binwidth = 5,fill="deep pink",color="white") +
   labs(x = "Time at shelter", y = "Number of days")
 ```
 comment here...
