@@ -33,6 +33,8 @@ library(GGally)
 library(formatR)
 library(qcc)
 library(car)
+library(MASS)
+library(scales)
 ```
 # Introduction {#sec:intro}
 comment here...
@@ -48,19 +50,25 @@ dataset20$outcome_type<-as.factor(dataset20$outcome_type)
 dataset20$chip_status<-as.factor(dataset20$chip_status)
 dataset20$month<-as.factor(dataset20$month)
 head20<-head(dataset20)#View the structure of data
-kable(head20,format="latex")
+library(kableExtra)
+head20 %>%
+  kable(caption = '\\label{tab:summary} Summary statistics on Dallas animal shelter.', align = 'c') %>%
+  kable_styling(latex_option = "hold_position")
 ```
 # Exploratory Data Analysis {#sec:exploratory}
 
 ```{r exploratory1, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:histgram} Days stay at shelter"}
 dataset20 %>%
   ggplot(aes(x = time_at_shelter)) +
-  geom_histogram(binwidth = 5,fill="pink",color="white") +
-  labs(x = "Time at shelter", y = "Number of days")
+  geom_histogram(binwidth = 5,fill="deep pink",color="white") +
+  labs(x = "Time at shelter", y = "Number of days") 
 ```
+
 comment here...
+
 ```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
 #Plot pie charts of 4 categorical variables
+
 pie1<-ggplot(dataset20, aes(x = "animal_counts", fill =animal_type)) + 
   geom_bar(width = 1) + coord_polar(theta = "y") + 
   geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
@@ -80,7 +88,9 @@ pie4<-ggplot(dataset20, aes(x = "intake_type", fill =intake_type)) +
 library(gridExtra)
 grid.arrange(pie1,pie2,pie3,pie4,ncol=2,nrow=2)
 ```
+
 comment here...
+
 ```{r exploratory3, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
 #Create 4 box plots of categorical variables and "time_at_shelter" 
 #with color mapped to categorical variables
@@ -103,6 +113,7 @@ plot4<-ggplot(data =dataset20, aes(x=intake_type, y=time_at_shelter, fill=intake
 library(gridExtra)
 grid.arrange(plot1,plot2,plot3,plot4,ncol=2,nrow=2)
 ```
+
 comment here...
 
 ```{r exploratory5, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:month} Boxplots of time at shelter by month"}
@@ -128,17 +139,21 @@ boxplot(dataset20$time_at_shelter,
 The figure \ref{fig:boxplot} indicates multiple outliers, by looking at the maximum values which is 87 which means that the days the animal spent at the shelter was 87. In this case, the 'outliers' we find are consistent with the actual conditions, thus these values can be retained.
 
 ## Check of Overdispersion {#sec:overdispersion}
-```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit1<-glm(time_at_shelter~intake_type+outcome_type+chip_status+month,
+```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:overdispersion} Overdispersion detection"}
+fit1<-glm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
           data=dataset20,family=poisson(link = "log")) #build poisson glm model
 summary(fit1) #view the coefficients
 c<-deviance(fit1)/df.residual(fit1) #calculate the deviance over the degree of residual
 c 
+ggplot(fit1,aes(x=log(fitted(fit1)),y=log((dataset20$time_at_shelter-fitted(fit1))^2)))+
+  geom_point(col="#f46d43") + 
+  geom_abline(slope=1, intercept=0, col="#a6d96a", size=1) + 
+  ylab(expression((y-hat(mu))^2)) + xlab(expression(hat(mu)))
 ```
 
 comment here(about the summary)...
 
-The proportion is much greater than 1, then use the qcc library to test whether the data is overdispersion. 
+The proportion is much greater than 1 From the figure \ref{fig:overdispersion}, this appears that most of the points lie above the line of quality for mean and variance. These both imply that may have overdispersion of the data. Then use the qcc library to test whether the data is overdispersion.
 
 ```{r overdispersion_check2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 qcc.overdispersion.test(dataset20$time_at_shelter,type="poisson")
@@ -146,11 +161,10 @@ qcc.overdispersion.test(dataset20$time_at_shelter,type="poisson")
 
 The p-value of significance testing is less than 0.05, further indicating overdispersion in data.
 
-In this case, replacing family="poisson" by family="quasipoisson" to solve this problem.
 
 ## Check of Multicollinearity {#sec:Multicollinearity}
 ```{r multicollinearty_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit2<- lm(time_at_shelter~intake_type+outcome_type+chip_status+month,
+fit2<- lm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
           data=dataset20) #build the linear model
 vif(fit2) #calculate VIF
 ```
@@ -159,13 +173,10 @@ From the above table, it lists the VIF of the independent variables. It indicate
 
 # Model fitting {#sec:fitting}
 ```{r modelfitting, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit3<-glm(time_at_shelter~intake_type+outcome_type+chip_status+month,data=dataset20,
-          family=quasipoisson(link = "log")) #build quasipoisson glm model
-summary(fit3) #view the coefficients
-exp(coef(fit3))
-
+#Start by fitting a quasi-Poisson model. 
+fit3 <- glm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,family= quasipoisson(link="log"),data=dataset20)
+summary(fit3)
 ```
-comment here...
 
 ```{r residual_vs_predicted, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:compare} Residual Plots vs. Predicted"}
 pred<-predict(fit1,type="response")
@@ -181,3 +192,41 @@ plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson resi
 abline(h=c(-1.5,0,4),lty="dotted",col="red")
 ```
 We can see in the plots that most residuals are contained within (-1.5,4) in the quasi-Poisson model, while quite more are outside this range for the original Poisson model.
+
+Next we fit a negative binomial model:
+```{r negativebinomial, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+fit4<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
+               data = dataset20)
+summary(fit4)
+```
+
+To decide between the quasi-Poisson and the negative binomial model, we plot $(y_{\mbox{i}}-\widehat{\mu}_{\mbox{i}})^2$ v $\widehat{\mu}_{\mbox{i}}$ and compare the linear and quadratic fit to see which one of them fits better. 
+
+```{r plot, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:choose} Square residuals v predicted"}
+res.sq<-residuals(fit1,type = "response")^2
+set1 <- data.frame(res.sq,mu.hat=fit1$fitted.values)
+fit.lin <- lm(formula = res.sq ~ mu.hat,data = set1)
+fit.quad <- lm(formula = res.sq ~ mu.hat + I(mu.hat^2),data = set1)
+summary(fit.quad)
+
+plot(set1$mu.hat,y=set1$res.sq,xlab = "Predicted count",ylab="Squared Residul")
+curve(expr = predict(fit.lin,newdata = data.frame(mu.hat=x),type="response"),
+      col="blue",add = TRUE,lty="solid")
+curve(expr = predict(fit.quad,newdata = data.frame(mu.hat=x),type="response"),
+      col="red",add = TRUE,lty="dashed")
+legend("topleft",legend=c("Linear","Quadratic"),col=c("blue","red"),
+      lty=c("solid","dashed"),bty="n")
+```
+The straight line fit (blue line) indicate that the quasi_Poisson model, and the quadratic fit (red line) would suggest using a negative binomial model.
+
+The quadratic coefficient in the above model has a $p$-value of 0.9115, which is not significant. We don't have any evidence that the negative binomial is better and we go with quasi-Poisson model.
+
+In the original quasi-Poisson model, we detected that the $p$-values for different animal types are all not significant (<0.05), hence, we removed it from the model.
+
+```{r modelselection, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+fit5 <- glm(time_at_shelter ~ intake_type+outcome_type+chip_status+month,family=quasipoisson(link="log"),data=dataset20)
+summary(fit5)
+```
+
+# Conclusion {#sec:conclusion}
+
