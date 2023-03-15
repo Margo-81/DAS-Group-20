@@ -226,6 +226,9 @@ In the original quasi-Poisson model, we detected that the $p$-values for differe
 ```{r modelselection, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 fit5 <- glm(time_at_shelter ~ intake_type+outcome_type+chip_status+month,family=quasipoisson(link="log"),data=dataset20)
 summary(fit5)
+fit5 %>%
+  coef() %>%
+  exp()
 ```
 
 # Conclusion {#sec:conclusion}
