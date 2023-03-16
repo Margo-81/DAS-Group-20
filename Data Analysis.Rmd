@@ -41,7 +41,6 @@ comment here...
 
 # Load Data {#sec:load}
 ```{r loaddata, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-setwd("D://master//data analysis skills//Group Work2")
 dataset20 <- read.csv("dataset20.csv")
 library(knitr)
 dataset20$animal_type<-as.factor(dataset20$animal_type)
@@ -61,12 +60,12 @@ head20 %>%
 dataset20 %>%
   ggplot(aes(x = time_at_shelter)) +
   geom_histogram(binwidth = 5,fill="deep pink",color="white") +
-  labs(x = "Time at shelter", y = "Number of days") 
+  labs(x = "Time at shelter", y = "Number of days")
 ```
 
 comment here...
 
-```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
+```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Pie charts of different time at shelter of different categorical variables"}
 #Plot pie charts of 4 categorical variables
 
 pie1<-ggplot(dataset20, aes(x = "animal_counts", fill =animal_type)) + 
@@ -91,7 +90,7 @@ grid.arrange(pie1,pie2,pie3,pie4,ncol=2,nrow=2)
 
 comment here...
 
-```{r exploratory3, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
+```{r exploratory3, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Boxplots of different time at shelter of different categorical variables"}
 #Create 4 box plots of categorical variables and "time_at_shelter" 
 #with color mapped to categorical variables
 plot1<-ggplot(data =dataset20, aes(x=animal_type, y=time_at_shelter, fill=animal_type)) +
@@ -129,7 +128,7 @@ From the figure \ref{fig:month}, comment here...
 
 # Application Condition Judgement {#sec:check}
 ## Check of outliers {#sec:outliers}
-```{r outliercheck, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:boxplot} Outlier detection"}
+```{r outliercheck, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:boxplot} Boxplot of number of days at shelter to check for outliers"}
 # detection of outliers
 boxplot(dataset20$time_at_shelter,
         col=c('orange'),
@@ -139,7 +138,7 @@ boxplot(dataset20$time_at_shelter,
 The figure \ref{fig:boxplot} indicates multiple outliers, by looking at the maximum values which is 87 which means that the days the animal spent at the shelter was 87. In this case, the 'outliers' we find are consistent with the actual conditions, thus these values can be retained.
 
 ## Check of Overdispersion {#sec:overdispersion}
-```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:overdispersion} Overdispersion detection"}
+```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:overdispersion} Scatterplot of overdispersion detection"}
 fit1<-glm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
           data=dataset20,family=poisson(link = "log")) #build poisson glm model
 summary(fit1) #view the coefficients
@@ -166,7 +165,9 @@ The p-value of significance testing is less than 0.05, further indicating overdi
 ```{r multicollinearty_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 fit2<- lm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
           data=dataset20) #build the linear model
-vif(fit2) #calculate VIF
+vif(fit2) %>% #calculate VIF
+  kable(caption = '\\label{tab:vif} Variance Inflation Factor table', align = 'c') %>%
+  kable_styling(latex_option = "hold_position")
 ```
 
 From the above table, it lists the VIF of the independent variables. It indicates that the VIF of the variables are all less than 10 which means that the independent variables doesn't exist serious multicollinearity.
@@ -178,7 +179,7 @@ fit3 <- glm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+mon
 summary(fit3)
 ```
 
-```{r residual_vs_predicted, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:compare} Residual Plots vs. Predicted"}
+```{r residual_vs_predicted, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:compare} Comparsion of Standardised Pearson residual plots between regular likelihood and Quasi-likelihood"}
 pred<-predict(fit1,type="response")
 stand.resid<-rstandard(model=fit1,type="pearson")
 par(mfrow=c(1,2),pin=c(6,6))
@@ -202,7 +203,7 @@ summary(fit4)
 
 To decide between the quasi-Poisson and the negative binomial model, we plot $(y_{\mbox{i}}-\widehat{\mu}_{\mbox{i}})^2$ v $\widehat{\mu}_{\mbox{i}}$ and compare the linear and quadratic fit to see which one of them fits better. 
 
-```{r plot, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:choose} Square residuals v predicted"}
+```{r plot, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:choose} Plot of square residuals v predicted values, quasi-Poisson model (bule line), negative binomial model (red line)"}
 res.sq<-residuals(fit1,type = "response")^2
 set1 <- data.frame(res.sq,mu.hat=fit1$fitted.values)
 fit.lin <- lm(formula = res.sq ~ mu.hat,data = set1)
@@ -226,10 +227,15 @@ In the original quasi-Poisson model, we detected that the $p$-values for differe
 ```{r modelselection, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 fit5 <- glm(time_at_shelter ~ intake_type+outcome_type+chip_status+month,family=quasipoisson(link="log"),data=dataset20)
 summary(fit5)
-fit5 %>%
+```
+
+In the new quasi-Poisson model, we detected that the only one $p$-value for month is significant (<0.05), hence, we removed it from the model.
+
+```{r modelselection2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+fit6 <- glm(time_at_shelter ~ intake_type+outcome_type+chip_status,family=quasipoisson(link="log"),data=dataset20)
+summary(fit6)
+fit6 %>%
   coef() %>%
   exp()
 ```
-
 # Conclusion {#sec:conclusion}
-
