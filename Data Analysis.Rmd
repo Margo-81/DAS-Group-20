@@ -88,8 +88,6 @@ library(gridExtra)
 grid.arrange(pie1,pie2,pie3,pie4,ncol=2,nrow=2)
 ```
 
-comment here...
-
 ```{r exploratory3, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Boxplots of different time at shelter of different categorical variables"}
 #Create 4 box plots of categorical variables and "time_at_shelter" 
 #with color mapped to categorical variables
@@ -160,7 +158,6 @@ qcc.overdispersion.test(dataset20$time_at_shelter,type="poisson")
 
 The p-value of significance testing is less than 0.05, further indicating overdispersion in data.
 
-
 ## Check of Multicollinearity {#sec:Multicollinearity}
 ```{r multicollinearty_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 fit2<- lm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
@@ -173,69 +170,26 @@ vif(fit2) %>% #calculate VIF
 From the above table, it lists the VIF of the independent variables. It indicates that the VIF of the variables are all less than 10 which means that the independent variables doesn't exist serious multicollinearity.
 
 # Model fitting {#sec:fitting}
-```{r modelfitting, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-#Start by fitting a quasi-Poisson model. 
-fit3 <- glm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,family= quasipoisson(link="log"),data=dataset20)
-summary(fit3)
-```
-
-```{r residual_vs_predicted, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:compare} Comparsion of Standardised Pearson residual plots between regular likelihood and Quasi-likelihood"}
-pred<-predict(fit1,type="response")
-stand.resid<-rstandard(model=fit1,type="pearson")
-par(mfrow=c(1,2),pin=c(6,6))
-plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",
-     main="Regular likelihood",ylim=c(-2,4))
-abline(h=c(-1.5,0,4),lty="dotted",col="red")
-pred<-predict(fit3,type="response")
-stand.resid<-rstandard(model=fit3,type="pearson")
-plot(x=pred,y=stand.resid,xlab="Predicted count",ylab="Standardised Pearson residuals",
-     main="Quasi-likelihood",ylim=c(-2,4))
-abline(h=c(-1.5,0,4),lty="dotted",col="red")
-```
-We can see in the plots that most residuals are contained within (-1.5,4) in the quasi-Poisson model, while quite more are outside this range for the original Poisson model.
-
-Next we fit a negative binomial model:
+We fit a negative binomial model here:
 ```{r negativebinomial, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit4<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
+fit3<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
                data = dataset20)
-summary(fit4)
+summary(fit3)
 ```
 
 To decide between the quasi-Poisson and the negative binomial model, we plot $(y_{\mbox{i}}-\widehat{\mu}_{\mbox{i}})^2$ v $\widehat{\mu}_{\mbox{i}}$ and compare the linear and quadratic fit to see which one of them fits better. 
 
-```{r plot, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:choose} Plot of square residuals v predicted values, quasi-Poisson model (bule line), negative binomial model (red line)"}
-res.sq<-residuals(fit1,type = "response")^2
-set1 <- data.frame(res.sq,mu.hat=fit1$fitted.values)
-fit.lin <- lm(formula = res.sq ~ mu.hat,data = set1)
-fit.quad <- lm(formula = res.sq ~ mu.hat + I(mu.hat^2),data = set1)
-summary(fit.quad)
-
-plot(set1$mu.hat,y=set1$res.sq,xlab = "Predicted count",ylab="Squared Residul")
-curve(expr = predict(fit.lin,newdata = data.frame(mu.hat=x),type="response"),
-      col="blue",add = TRUE,lty="solid")
-curve(expr = predict(fit.quad,newdata = data.frame(mu.hat=x),type="response"),
-      col="red",add = TRUE,lty="dashed")
-legend("topleft",legend=c("Linear","Quadratic"),col=c("blue","red"),
-      lty=c("solid","dashed"),bty="n")
-```
-The straight line fit (blue line) indicate that the quasi_Poisson model, and the quadratic fit (red line) would suggest using a negative binomial model.
-
-The quadratic coefficient in the above model has a $p$-value of 0.9115, which is not significant. We don't have any evidence that the negative binomial is better and we go with quasi-Poisson model.
-
-In the original quasi-Poisson model, we detected that the $p$-values for different animal types are all not significant (<0.05), hence, we removed it from the model.
+In the original quasi-Poisson model, we detected that only the $p$-value for  the month8 is significant (<0.05), hence, we removed the covariate of the month from the model.
 
 ```{r modelselection, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit5 <- glm(time_at_shelter ~ intake_type+outcome_type+chip_status+month,family=quasipoisson(link="log"),data=dataset20)
-summary(fit5)
-```
-
-In the new quasi-Poisson model, we detected that the only one $p$-value for month is significant (<0.05), hence, we removed it from the model.
-
-```{r modelselection2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit6 <- glm(time_at_shelter ~ intake_type+outcome_type+chip_status,family=quasipoisson(link="log"),data=dataset20)
-summary(fit6)
-fit6 %>%
+fit4<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type+chip_status,
+               data = dataset20)
+summary(fit4)
+fit4 %>%
   coef() %>%
   exp()
 ```
+
+comment...
+
 # Conclusion {#sec:conclusion}
