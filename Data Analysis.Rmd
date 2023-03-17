@@ -65,26 +65,61 @@ dataset20 %>%
 
 comment here...
 
-```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Pie charts of different time at shelter of different categorical variables"}
-#Plot pie charts of 4 categorical variables
+```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
 
-pie1<-ggplot(dataset20, aes(x = "animal_counts", fill =animal_type)) + 
-  geom_bar(width = 1) + coord_polar(theta = "y") + 
-  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
-  theme_void() + ggtitle("Pie chart of animal type")
-pie2<-ggplot(dataset20, aes(x = "outcome_type", fill =outcome_type)) + 
-  geom_bar(width = 1) + coord_polar(theta = "y") + 
-  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
-  theme_void() + ggtitle("Pie chart of outcome type")
-pie3<-ggplot(dataset20, aes(x = "chip_status", fill =chip_status)) + 
-  geom_bar(width = 1) + coord_polar(theta = "y") + 
-  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
-  theme_void() + ggtitle("Pie chart of chip status")
-pie4<-ggplot(dataset20, aes(x = "intake_type", fill =intake_type)) + 
-  geom_bar(width = 1) + coord_polar(theta = "y") + 
-  geom_text(aes(label = ..count..), stat = "count", position = position_stack(vjust =0.5)) +
-  theme_void() + ggtitle("Pie chart of intake type")
-library(gridExtra)
+#Plot pie charts of 4 categorical variables
+animal_count <- dataset20 %>% 
+  group_by(animal_type) %>% 
+  summarize(count = n())
+
+total_count1 <- sum(animal_count$count)
+animal_count$percent1 <- animal_count$count/ total_count1
+pie1<-ggplot(animal_count, aes(x = "animal_type", y = percent1,fill =animal_type)) +
+  geom_col(width = 1) + coord_polar(theta = "y") + 
+  geom_text(aes(label=paste0(round(percent1*100),"%")),position=position_stack(vjust=0.5)) +theme_void() + 
+  ggtitle("Pie chart of animal type")
+
+outcome_count <- dataset20 %>% 
+  group_by(outcome_type) %>% 
+  summarize(count = n())
+
+total_count2 <- sum(outcome_count$count)
+outcome_count$percent2<- outcome_count$count/ total_count2
+
+pie2<-ggplot(outcome_count, aes(x = "outcome_type",y = percent2,fill =outcome_type)) + 
+geom_col(width = 1) + coord_polar(theta = "y") + 
+  geom_text(aes(label=paste0(round(percent2*100),"%")),position=position_stack(vjust=0.5)) +
+  theme_void() + 
+  ggtitle("Pie chart of outcome type")
+
+chip_count <- dataset20 %>% 
+  group_by(chip_status) %>% 
+  summarize(count = n())
+
+total_count3 <- sum(chip_count$count)
+chip_count$percent3<- chip_count$count/total_count3
+
+pie3<-ggplot(chip_count, aes(x = "chip_status",y = percent3,fill =chip_status))+ 
+geom_col(width = 1) + 
+  coord_polar(theta = "y") + 
+  geom_text(aes(label=paste0(round(percent3*100),"%")),position=position_stack(vjust=0.5))+
+  theme_void() + 
+  ggtitle("Pie chart of chip status")
+
+intake_count <- dataset20 %>% 
+  group_by(intake_type) %>% 
+  summarize(count = n())
+
+total_count4 <- sum(intake_count$count)
+
+intake_count$percent4<- intake_count$count/total_count4
+
+pie4<-ggplot(intake_count, aes(x = "intake_type",y = percent4,fill =intake_type)) + 
+  geom_col(width = 1) + 
+  coord_polar(theta = "y") + 
+  geom_text(aes(label=paste0(round(percent4*100),"%")),position=position_stack(vjust=0.5))+theme_void() + 
+  ggtitle("Pie chart of intake type")
+
 grid.arrange(pie1,pie2,pie3,pie4,ncol=2,nrow=2)
 ```
 
@@ -185,9 +220,14 @@ In the original quasi-Poisson model, we detected that only the $p$-value for  th
 fit4<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type+chip_status,
                data = dataset20)
 summary(fit4)
-fit4 %>%
-  coef() %>%
-  exp()
+```
+
+The $p$-values for  the chip_status are not significant (<0.05), therefore, we removed the covariate of the chip_status from the model.
+
+```{r modelselection2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
+fit5<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type,
+               data = dataset20)
+summary(fit5)
 ```
 
 comment...
