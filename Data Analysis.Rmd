@@ -1,5 +1,5 @@
 ---
-title: "Data Analysis"
+title: "Dalas Aniaml Shelter Data Analysis"
 author: "Group20"
 documentclass: article
 output:
@@ -36,14 +36,22 @@ library(car)
 library(MASS)
 library(scales)
 ```
+
 # Introduction {#sec:intro}
 We are interested in studying the lifetime of a domestic animal in a shelter before the prospective adoption. For this reason, we obtained 1465 observations with respect to 7 different variables. 
+
 The variable of research is the time at the shelter which is considered as the response variable and the explanatory variables are described below:  
-First Explanatory Variable (discrete variable): The animal type: “Bird”, “Cat”, “Dog” & “Wildlife”  
+
+First Explanatory Variable (discrete variable): The animal type: “Bird”, “Cat”, “Dog” & “Wildlife”.
+
 Second Explanatory variable: (discrete variable): The months that the animal spent in a shelter within a year. The variable can take a value from 1 to 12.  
+
 Third Explanatory variable (discrete variable): We made this analysis based on the year 2017.  
+
 Fourth explanatory variable: (discrete variable): Intake type:   “Confiscated”, “owner surrender” & “stray”.  
+
 Fifth explanatory variable: (discrete variable):outcome type:   “adoption”, “died”, “euthanized”, “foster” & “returned to owner”.  
+
 Sixth variable: (discrete variable): chip status: “scan chip”, “scan no chip” & “unable to scan”. 
 
 # Load Data {#sec:load}
@@ -70,7 +78,9 @@ dataset20 %>%
   geom_histogram(binwidth = 5,fill="deep pink",color="white") +
   labs(x = "Time at shelter", y = "Number of days")
 ```
-In figure 1, we attempted to measure the overall time an animal remains at the shelter, in days. From the graph, we can easily see that an animal, according to its type, can spent from 0 (the animal might be adopted, returned to owner, or passed away within the same day) to more than 500 days in a shelter.
+
+In figure \ref{fig:histgram}, we attempted to measure the overall time an animal remains at the shelter, in days. From the graph, we can easily see that an animal, according to its type, can spent from 0 (the animal might be adopted, returned to owner, or passed away within the same day) to more than 500 days in a shelter.
+
 ```{r exploratory2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:animal} Different time at shelter of different categorical variables"}
 
 #Plot pie charts of 4 categorical variables
@@ -149,19 +159,32 @@ plot4<-ggplot(data =dataset20, aes(x=intake_type, y=time_at_shelter, fill=intake
 library(gridExtra)
 grid.arrange(plot1,plot2,plot3,plot4,ncol=2,nrow=2)
 ```
-Time at shelter (vs) animal type:  
+
+Time at shelter (vs) animal type:
+
 We can see that the average time spent in a shelter is almost zero when the type is bird,  compared to other domestic animals like cats and dogs, whose average life in a shelter is much higher.  
-Moreover,  cats are spending a higher time in a shelter than birds but shorter than dogs and wild animals; However, the outlier number of cats remained in a shelter is lower that this of dogs and higher than this of wild animals.  
+
+Moreover, cats are spending a higher time in a shelter than birds but shorter than dogs and wild animals; However, the outlier number of cats remained in a shelter is lower that this of dogs and higher than this of wild animals.  
 Also, the average life of dogs within a shelter is almost the same as those animals who belong to “wildlife” category, however the wild animals does not exhibit a higher outlier than the dogs.   
+
 To conclude, the overall picture is that dogs remain in a shelter for a longer period compared  to all other animals.  
+
 Time at shelter (vs) outcome type:  
+
 We can see from the graph that lost animals are being returned to the owners almost within the same day.  
-Except of those returned to the owner, the shortest life in the shelter is exhibited by those animals that need to be euthanized, due to health anomalies. However, we can see a reasonably high outlier number of days in this category which enhances the hypothesis that animals are getting a good treatment in the shelters and the euthanasia is considered the last resort.  
+
+Except of those returned to the owner, the shortest life in the shelter is exhibited by those animals that need to be euthanized, due to health anomalies. 
+However, we can see a reasonably high outlier number of days in this category which enhances the hypothesis that animals are getting a good treatment in the shelters and the euthanasia is considered the last resort.  
 Finally, we can notice that animals whose odds are  in favour to get adopted or fostered, present higher divergence in days along with the time spent in a shelter.  
+
 Time at shelter (vs) chip status:  
+
 As excepted, animals that have been chipped are spending on average, a shorter time in a shelter as they can be easily found, cured and returned to owners; However, animals  that have not been chipped, are spending a longer time in a shelter and present higher outliers.  
+
 Time at shelter (vs) Intake type:  
+
 Life in a shelter is extended for animals that are confiscated compared to those that have been surrounded by an owner or strayed. Among the later two categories, higher average time present the surrounded animals. 
+
 ```{r exploratory5, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:month} Boxplots of time at shelter by month"}
 ggplot(data = dataset20, mapping = aes(x = factor(month), y = time_at_shelter)) +
   geom_boxplot(fill = "purple") +
@@ -170,6 +193,7 @@ ggplot(data = dataset20, mapping = aes(x = factor(month), y = time_at_shelter)) 
   scale_x_discrete(labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
                               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 ```
+
 From the figure \ref{fig:month}, the average time is similar across all months and there is not a specific pattern with respect to which month an animal is spending in a shelter.
 
 # Application Condition Judgement {#sec:check}
@@ -180,19 +204,25 @@ boxplot(dataset20$time_at_shelter,
         col=c('orange'),
         ylab="Days",xlab="Time at shelter")
 ```
+
 The figure \ref{fig:boxplot} indicates multiple outliers, by looking at the maximum values which is 87 which means that the days the animal spent at the shelter was 87. In this case, the 'outliers' we find are consistent with the actual conditions, thus these values can be retained.
 
 ## Check of Overdispersion {#sec:overdispersion}
+Initially we run a Poison generalized model and we attempted to discover if the Poisson function is the most appropriate to be used as the linear function to fit the data. 
 
-Initially we run a Poison generalized model and we attempted to discover if the Poisson function is the most appropriate to be used as the linear function to fit the data.  
-For this purpose, we examined the significance of slope coefficients individually and the validity of the overall model.  
-For this purpose, we employee the Wald test and the Null Hypothesis is that each slope coefficient individually equals to zero and the alternative Hypothesis is that each slope coefficient individually is not equal to zero. At 5% level of significance (critical value: xxxx), we concluded that the slope coefficients related to the below covariates are significantly different from zero. In other words, they are able to predict the value of time that an animal remains in a shelter:  
+For this purpose, we examined the significance of slope coefficients individually and the validity of the overall model. 
+
+For this purpose, we employee the Wald test and the Null Hypothesis is that each slope coefficient individually equals to zero and the alternative Hypothesis is that each slope coefficient individually is not equal to zero. At 5% level of significance, we concluded that the slope coefficients related to the below covariates are significantly different from zero. In other words, they are able to predict the value of time that an animal remains in a shelter:  
+
 animal_typeCAT, animal_typeDOG, animal_typeWILDLIFE  
 intake_typeOWNER SURRENDER , intake_typeSTRAY  
 outcome_typeDIED , outcome_typeEUTHANIZED, outcome_typeFOSTER , outcome_typeRETURNED  
 chip_statusSCAN NO CHIP, chip_statusUNABLE TO SCAN  
 month2, month4, month5, month6, month7, month8, month9, month10, month11, month12  
+
+
 We can now evaluate the significance of the estimated regression model as a whole and assess whether all regression coefficients as a group explain the variation in the dependent variable. To achieve this, we employee the concept of deviance. The residual deviance for the fitted model is 8018.8 on 1442 degrees of freedom. The value of the deviance is fairly low compared to the degrees of freedom and for this reason we can conclude that the model fits the data well.
+
 ```{r overdispersion_check, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE,fig.align = "center",fig.dim=c(13,8), fig.pos = "H",fig.cap = "\\label{fig:overdispersion} Scatterplot of overdispersion detection"}
 fit1<-glm(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
           data=dataset20,family=poisson(link = "log")) #build poisson glm model
@@ -204,8 +234,10 @@ ggplot(fit1,aes(x=log(fitted(fit1)),y=log((dataset20$time_at_shelter-fitted(fit1
   geom_abline(slope=1, intercept=0, col="#a6d96a", size=1) + 
   ylab(expression((y-hat(mu))^2)) + xlab(expression(hat(mu)))
 ```
+
 We employed the scatterplot of overdispersion, and we discovered that our model suffers from overdispersion and for this reason it cannot be used for out of sample data.  
 The proportion is much greater than 1 From the figure \ref{fig:overdispersion}, this appears that most of the points lie above the line of quality for mean and variance. These both imply that may have overdispersion of the data. Then use the qcc library to test whether the data is overdispersion.
+
 ```{r overdispersion_check2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 qcc.overdispersion.test(dataset20$time_at_shelter,type="poisson")
 ```
@@ -225,44 +257,51 @@ From the above table, it lists the VIF of the independent variables. It indicate
 
 # Model fitting {#sec:fitting}
 We rejected our previous model, given that it suffers from overdispersion, and we now attempt to fit the data using the negative binomial as the linear function.  
+
 Following an identical methodology as in the previous model, we examined the significance of slope coefficients individually and the validity of the overall model.  
+
 Employing the Wald test, the first Null Hypothesis is that each slope coefficient individually equals to zero and the alternative Hypothesis is that each slope coefficient individually is not equal to zero. At 5% level of significance (critical value: 1.94), we concluded that the slope coefficients related to the below covariates are significantly different from zero. In other words, they are able to predict the value of time that an animal remains in a shelter:  
+
+
 animal_typeCAT, animal_typeDOG, animal_typeWILDLIFE  
 intake_typeOWNER SURRENDER , intake_typeSTRAY  
 outcome_typeDIED , outcome_typeEUTHANIZED, outcome_typeFOSTER , outcome_typeRETURNED  
+
+
 To further assess the above aspect, we could investigate the p-value. Based on our knowledge, the lower the p-value for a regression coefficient, the stronger the case of rejecting the Null Hypothesis. In our model, the p-values for the regression coefficients corresponding to above covariates are close to zero and this constitutes a strong evidence that these are the covariates that we need to keep in our ultimate model which we did. 
+
 We fit a negative binomial model here:
+
 ```{r negativebinomial, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
 fit3<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type+chip_status+month,
                data = dataset20)
 summary(fit3)
 ```
 
-To decide between the quasi-Poisson and the negative binomial model, we plot $(y_{\mbox{i}}-\widehat{\mu}_{\mbox{i}})^2$ v $\widehat{\mu}_{\mbox{i}}$ and compare the linear and quadratic fit to see which one of them fits better. 
-
 In the original quasi-Poisson model, we detected that only the $p$-value for  the month8 is significant (<0.05), hence, we removed the covariate of the month from the model.
 
 ```{r modelselection, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit4<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type+chip_status,
+fit4<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type,
                data = dataset20)
 summary(fit4)
 ```
 
-The $p$-values for  the chip_status are not significant (<0.05), therefore, we removed the covariate of the chip_status from the model.
-
-```{r modelselection2, echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE}
-fit5<- glm.nb(time_at_shelter~animal_type+intake_type+outcome_type,
-               data = dataset20)
-summary(fit5)
-```
 In this model, we kept only the significant slope coefficients, and we are now able to evaluate the significance of the estimated regression model as a whole and assess whether all regression coefficients as a group explain the variation in the dependent variable. To achieve this, we employee the concept of deviance. The residual deviance for the fitted model is 1706 on 1445 degrees of freedom. The value of the deviance is higher than the degrees of freedom however not so high to support that the model does not fit the data well. For this reason, given that the residual deviance is close to the value of the degrees of freedom we conclude that the model does a good join explaining the data.  
+
 We also calculated the AIC value for the two negative binomial models, the AIC value of the second model is lower than the AIC value of the first model and this constitutes a strong evidence that the second binomial model is better than the first. 
 
 # Conclusion {#sec:conclusion}
 
 The negative binomial model fits the data compared to Poisson model which exhibits overdispersion.  
+
 The significant explanatory variables with respect to the negative binomial model are the following:  
+
+
 animal_typeCAT, animal_typeDOG, animal_typeWILDLIFE  
 intake_typeOWNER SURRENDER , intake_typeSTRAY  
 outcome_typeDIED , outcome_typeEUTHANIZED, outcome_typeFOSTER , outcome_typeRETURNED  
+
+
 The AIC of the second binomial model is lower than this of the first binomial model and for this reason we can support that our ultimate negative binomial model fits the data with the most efficient way.
+
+Hence, we can conclude that animal types, intake types and outcome types will affect the number of days staying at the shelter.
